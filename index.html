@@ -12,8 +12,21 @@
       align-items: center;
       height: 100vh;
       margin: 0;
-      background-color: #f5dca7; /* light blue color */
+       /* Rainbow Background */
+    background: linear-gradient(135deg, violet, indigo, blue, green, yellow, orange, red, violet, indigo, blue, green, yellow, orange, red);
+    background-size: 400% 400%;
+    animation: rainbow-flow 2s linear infinite;
+  }
+
+  @keyframes rainbow-flow {
+      0% {
+        background-position: 0% 0%;
+      }
+      100% {
+        background-position: 100% 100%;
+      }
     }
+
     #countdown {
       text-align: center;
     }
