@@ -3,131 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life Weeks</title>
+    <title>Timeline of Your Life</title>
     <style>
-    body {
-        background-color: white;
-        font-family: Arial, sans-serif;
-    }
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(52, 10px);
-        grid-gap: 5px;
-        margin: 20px auto;
-        width: fit-content;
-    }
-    .week {
-        width: 10px;
-        height: 10px;
-        border: 1px solid black;
-        cursor: pointer;
-    }
-    .past {
-        background-color: black;
-    }
-    .current {
-        background-color: red;
-    }
-    .future {
-        background-color: white;
-    }
-    .age-0-12 {
-        background-color: yellow;
-    }
-    .age-13-19 {
-        background-color: orange;
-    }
-    .age-20-34 {
-        background-color: pink;
-    }
-    .age-35-49 {
-        background-color: purple;
-    }
-    .age-50-79 {
-        background-color: blue;
-    }
-    .age-80-100 {
-        background-color: green;
-    }
-
-    .grid-wrapper {
-        display: flex;
-        justify-content: center;
-        margin: 0 auto;
-    }
-
-    @media (max-width: 600px) {
-        .grid-wrapper {
-            transform: scale(0.7);
-            transform-origin: top center;
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
-    }
-</style>
-    
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+
+        .header p {
+            font-size: 0.9em;
+            letter-spacing: 1px;
+            margin: 10px 0 0 0;
+            opacity: 0.8;
+        }
+
+        .timeline-container {
+            position: relative;
+            width: 800px;
+            max-width: 90vw;
+        }
+
+        .year-line {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            position: relative;
+            height: 20px;
+        }
+
+        .year-line.left-to-right {
+            flex-direction: row;
+        }
+
+        .year-line.right-to-left {
+            flex-direction: row-reverse;
+        }
+
+        .age-label {
+            width: 30px;
+            font-size: 12px;
+            text-align: center;
+            margin: 0 15px;
+            opacity: 0.7;
+            z-index: 5;
+        }
+
+        .line {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            position: relative;
+            overflow: visible;
+        }
+
+        .line.past {
+            background: linear-gradient(90deg, var(--line-color) 0%, var(--line-color) 100%);
+        }
+
+        .line.current {
+            background: linear-gradient(90deg, var(--line-color) 0%, var(--line-color) var(--progress), #333 var(--progress), #333 100%);
+        }
+
+        .line.future {
+            background: #333;
+        }
+
+        .today-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            animation: jump 2s ease-in-out infinite, waves 2s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes jump {
+            0%, 100% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-70%) scale(1.2); }
+        }
+
+        @keyframes waves {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 20px rgba(255, 255, 255, 0.8),
+                    0 0 40px rgba(255, 255, 255, 0.4),
+                    0 0 60px rgba(255, 255, 255, 0.2);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 30px rgba(255, 255, 255, 1),
+                    0 0 60px rgba(255, 255, 255, 0.6),
+                    0 0 90px rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        /* Color scheme based on age ranges - matching the image */
+        .age-0-9 { --line-color: #FFD700; }    /* Gold/Yellow */
+        .age-10-19 { --line-color: #FF8C00; }  /* Orange */
+        .age-20-29 { --line-color: #FF4500; }  /* Red-Orange */
+        .age-30-39 { --line-color: #FF1493; }  /* Deep Pink */
+        .age-40-49 { --line-color: #8B008B; }  /* Dark Magenta */
+        .age-50-59 { --line-color: #4169E1; }  /* Royal Blue */
+        .age-60-69 { --line-color: #0066CC; }  /* Blue */
+        .age-70-79 { --line-color: #008B8B; }  /* Dark Cyan */
+        .age-80-89 { --line-color: #228B22; }  /* Forest Green */
+        .age-90-99 { --line-color: #32CD32; }  /* Lime Green */
+
+        /* Connection lines for U-turns */
+        .connection {
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            width: 30px;
+            height: 36px;
+            border: 2px solid #444;
+            border-left: none;
+            border-top-right-radius: 18px;
+            border-bottom-right-radius: 18px;
+            transform: translateY(-50%);
+        }
+
+        .year-line.right-to-left .connection {
+            left: -15px;
+            right: auto;
+            border: 2px solid #444;
+            border-right: none;
+            border-top-left-radius: 18px;
+            border-bottom-left-radius: 18px;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+    </style>
 </head>
 <body>
-    <h1 style="text-align: center;">Your Life in Weeks</h1>
-    <div class="grid-wrapper">
-        <div class="grid" id="lifeGrid"></div>
+    <div class="header">
+        <h1>TIMELINE OF YOUR LIFE</h1>
+        <p>TAKE A STEP BACK AND GAIN A NEW PERSPECTIVE ON YOUR LIFE</p>
+    </div>
+
+    <div class="timeline-container" id="timeline">
+        <!-- Timeline will be generated by JavaScript -->
     </div>
 
     <script>
-        const birthDate = new Date(1994, 11, 20); // Months are 0-indexed
-        const currentDate = new Date();
-        const lifeExpectancy = 100; // in years
-        const weeksPerYear = 52;
-        const totalWeeks = lifeExpectancy * weeksPerYear;
+        const birthday = new Date('1994-12-20');
+        const today = new Date();
+        const timeline = document.getElementById('timeline');
 
-        const calculateWeekIndex = (date) => {
-            const diff = date - birthDate;
-            return Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
-        };
+        // Calculate current age and position within the current year
+        const ageInDays = (today - birthday) / (24 * 60 * 60 * 1000);
+        const currentAge = Math.floor(ageInDays / 365.25);
+        
+        // Calculate progress within current year
+        const yearStart = new Date(birthday);
+        yearStart.setFullYear(birthday.getFullYear() + currentAge);
+        const yearEnd = new Date(yearStart);
+        yearEnd.setFullYear(yearStart.getFullYear() + 1);
+        const yearProgress = Math.min((today - yearStart) / (yearEnd - yearStart), 1);
 
-        const getWeekDateRange = (weekIndex) => {
-            const startOfWeek = new Date(birthDate.getTime() + weekIndex * 7 * 24 * 60 * 60 * 1000);
-            const endOfWeek = new Date(startOfWeek.getTime() + 6 * 24 * 60 * 60 * 1000);
-            return `${startOfWeek.toDateString()} - ${endOfWeek.toDateString()}`;
-        };
+        function getColorClass(age) {
+            if (age < 10) return 'age-0-9';
+            if (age < 20) return 'age-10-19';
+            if (age < 30) return 'age-20-29';
+            if (age < 40) return 'age-30-39';
+            if (age < 50) return 'age-40-49';
+            if (age < 60) return 'age-50-59';
+            if (age < 70) return 'age-60-69';
+            if (age < 80) return 'age-70-79';
+            if (age < 90) return 'age-80-89';
+            return 'age-90-99';
+        }
 
-        const getAgeCategory = (weekIndex) => {
-            const age = Math.floor(weekIndex / weeksPerYear);
-            if (age <= 12) return 'age-0-12';
-            if (age <= 19) return 'age-13-19';
-            if (age <= 34) return 'age-20-34';
-            if (age <= 49) return 'age-35-49';
-            if (age <= 79) return 'age-50-79';
-            return 'age-80-100';
-        };
+        // Generate 100 years with snake pattern
+        for (let age = 0; age < 100; age++) {
+            const yearDiv = document.createElement('div');
+            yearDiv.className = 'year-line';
+            
+            // Determine direction - even ages go left-to-right, odd ages go right-to-left
+            const isLeftToRight = age % 2 === 0;
+            yearDiv.classList.add(isLeftToRight ? 'left-to-right' : 'right-to-left');
 
-        const calculateAgeFromDate = (date) => {
-            const ageDiff = date - birthDate;
-            const ageDate = new Date(ageDiff);
-            return Math.abs(ageDate.getUTCFullYear() - 1970);
-        };
+            const ageLabel = document.createElement('div');
+            ageLabel.className = 'age-label';
+            ageLabel.textContent = age;
 
-        const currentWeekIndex = calculateWeekIndex(currentDate);
-
-        const grid = document.getElementById('lifeGrid');
-
-        for (let i = 0; i < totalWeeks; i++) {
-            const week = document.createElement('div');
-            week.classList.add('week');
-
-            if (i < currentWeekIndex) {
-                week.classList.add('past', getAgeCategory(i));
-            } else if (i === currentWeekIndex) {
-                week.classList.add('current');
+            const line = document.createElement('div');
+            line.className = 'line';
+            
+            const colorClass = getColorClass(age);
+            line.classList.add(colorClass);
+            
+            if (age < currentAge) {
+                // Past years - fully colored
+                line.classList.add('past');
+            } else if (age === currentAge) {
+                // Current year - partially colored with today dot
+                line.classList.add('current');
+                line.style.setProperty('--progress', `${yearProgress * 100}%`);
+                
+                const todayDot = document.createElement('div');
+                todayDot.className = 'today-dot';
+                
+                // Position dot based on direction and progress
+                if (isLeftToRight) {
+                    todayDot.style.left = `${yearProgress * 100}%`;
+                } else {
+                    todayDot.style.right = `${yearProgress * 100}%`;
+                }
+                
+                line.appendChild(todayDot);
             } else {
-                week.classList.add('future');
+                // Future years - grey
+                line.classList.add('future');
             }
 
-            week.addEventListener('click', () => {
-                const startOfWeek = new Date(birthDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
-                const age = calculateAgeFromDate(startOfWeek);
-                alert(`Week ${i + 1}: ${getWeekDateRange(i)}\nAge: ${age} years`);
-            });
+            yearDiv.appendChild(ageLabel);
+            yearDiv.appendChild(line);
 
-            grid.appendChild(week);
+            // Add connection curve for U-turns (except for last year)
+            if (age < 99) {
+                const connection = document.createElement('div');
+                connection.className = 'connection';
+                yearDiv.appendChild(connection);
+            }
+
+            timeline.appendChild(yearDiv);
         }
     </script>
 </body>
