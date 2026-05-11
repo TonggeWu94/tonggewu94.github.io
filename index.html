@@ -94,7 +94,7 @@
     </div>
 
     <script>
-        const birthday = new Date('1994-12-20');
+        const birthday = new Date('1994-12-20T00:00:00');
         const today = new Date();
 
         const ageInDays = (today - birthday) / (24 * 60 * 60 * 1000);
@@ -229,8 +229,8 @@
                 tooltipBg.setAttribute('y', y - 40);
                 tooltipBg.setAttribute('width', '240');
                 tooltipBg.setAttribute('height', '30');
-                tooltipBg.setAttribute('rx', '4');
-                tooltipBg.setAttribute('fill', 'rgba(255,255,255,0.15)');
+                tooltipBg.setAttribute('rx', '12');
+                tooltipBg.setAttribute('fill', 'rgba(255,255,255,0.3)');
                 tooltip.appendChild(tooltipBg);
 
                 const tooltipLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -342,6 +342,97 @@
             text.setAttribute('letter-spacing', '2');
             text.textContent = stage.label;
             svg.appendChild(text);
+        });
+
+        // Milestones
+        const milestones = [
+            { date: new Date('2013-09-01T00:00:00'), label: '🎓 Started undergrad at Fudan University' },
+            { date: new Date('2017-06-01T00:00:00'), label: '🎓 Finished undergrad from Fudan University' },
+            { date: new Date('2022-05-12T00:00:00'), label: '🎓 Got PhD from UC Berkeley' },
+            { date: new Date('2022-06-06T00:00:00'), label: ' 1st full time job at Apple Inc.' },
+            { date: new Date('2024-06-24T00:00:00'), label: '💍 Married Linda Zhou' },
+        ];
+
+        milestones.forEach(ms => {
+            const msDays = (ms.date - birthday) / (24 * 60 * 60 * 1000);
+            const msAge = Math.floor(msDays / 365.25);
+            const msYearStart = new Date(birthday);
+            msYearStart.setFullYear(birthday.getFullYear() + msAge);
+            const msYearEnd = new Date(msYearStart);
+            msYearEnd.setFullYear(msYearStart.getFullYear() + 1);
+            const msProgress = (ms.date - msYearStart) / (msYearEnd - msYearStart);
+
+            const msY = getYForRow(msAge);
+            const msIsLTR = msAge % 2 === 0;
+            const msX = msIsLTR
+                ? marginLeft + lineLength * msProgress
+                : (snakeWidth - marginRight) - lineLength * msProgress;
+
+            const msColor = getColor(msAge);
+
+            const msGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            msGroup.style.cursor = 'pointer';
+
+            const msDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            msDot.setAttribute('cx', msX);
+            msDot.setAttribute('cy', msY);
+            msDot.setAttribute('r', '5');
+            msDot.setAttribute('fill', msColor);
+            msDot.setAttribute('stroke', 'white');
+            msDot.setAttribute('stroke-width', '2');
+            msGroup.appendChild(msDot);
+
+            const msHit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            msHit.setAttribute('cx', msX);
+            msHit.setAttribute('cy', msY);
+            msHit.setAttribute('r', '15');
+            msHit.setAttribute('fill', 'transparent');
+            msGroup.appendChild(msHit);
+
+            const msTooltip = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            msTooltip.setAttribute('opacity', '0');
+            msTooltip.style.transition = 'opacity 0.3s';
+
+            const msTooltipBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            msTooltipBg.setAttribute('x', msX - 140);
+            msTooltipBg.setAttribute('y', msY - 48);
+            msTooltipBg.setAttribute('width', '280');
+            msTooltipBg.setAttribute('height', '42');
+            msTooltipBg.setAttribute('rx', '12');
+            msTooltipBg.setAttribute('fill', 'rgba(255,255,255,0.3)');
+            msTooltip.appendChild(msTooltipBg);
+
+            const msTooltipText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            msTooltipText.setAttribute('x', msX);
+            msTooltipText.setAttribute('y', msY - 35);
+            msTooltipText.setAttribute('text-anchor', 'middle');
+            msTooltipText.setAttribute('dominant-baseline', 'middle');
+            msTooltipText.setAttribute('fill', 'white');
+            msTooltipText.setAttribute('font-size', '14');
+            msTooltipText.setAttribute('font-family', 'SF Hello, -apple-system, sans-serif');
+            msTooltipText.textContent = ms.label;
+            msTooltip.appendChild(msTooltipText);
+
+            const msSubText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            const msDateStr = ms.date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            msSubText.setAttribute('x', msX);
+            msSubText.setAttribute('y', msY - 17);
+            msSubText.setAttribute('text-anchor', 'middle');
+            msSubText.setAttribute('dominant-baseline', 'middle');
+            msSubText.setAttribute('fill', 'white');
+            msSubText.setAttribute('opacity', '0.6');
+            msSubText.setAttribute('font-size', '11');
+            msSubText.setAttribute('font-family', 'SF Hello, -apple-system, sans-serif');
+            msSubText.textContent = `${msDateStr} · Age ${msAge}`;
+            msTooltip.appendChild(msSubText);
+
+            msGroup.appendChild(msTooltip);
+            svg.appendChild(msGroup);
+
+            msGroup.addEventListener('mouseenter', () => msTooltip.setAttribute('opacity', '1'));
+            msGroup.addEventListener('mouseleave', () => msTooltip.setAttribute('opacity', '0'));
+            msGroup.addEventListener('touchstart', () => msTooltip.setAttribute('opacity', '1'));
+            msGroup.addEventListener('touchend', () => setTimeout(() => msTooltip.setAttribute('opacity', '0'), 2000));
         });
     </script>
 </body>
