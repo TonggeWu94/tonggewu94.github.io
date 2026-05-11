@@ -8,7 +8,7 @@
         body {
             background-color: black;
             color: white;
-            font-family: 'Arial', sans-serif;
+            font-family: 'SF Hello', -apple-system, sans-serif;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -36,125 +36,50 @@
             opacity: 0.8;
         }
 
-        .timeline-container {
+        .timeline-wrapper {
             position: relative;
-            width: 800px;
-            max-width: 90vw;
+            width: 960px;
+            max-width: 95vw;
         }
 
-        .year-line {
-            display: flex;
-            align-items: center;
-            margin: 8px 0;
-            position: relative;
-            height: 20px;
-        }
-
-        .year-line.left-to-right {
-            flex-direction: row;
-        }
-
-        .year-line.right-to-left {
-            flex-direction: row-reverse;
+        svg {
+            display: block;
+            width: 100%;
+            height: auto;
         }
 
         .age-label {
-            width: 30px;
+            font-family: 'SF Hello', -apple-system, sans-serif;
             font-size: 12px;
-            text-align: center;
-            margin: 0 15px;
+            fill: white;
             opacity: 0.7;
-            z-index: 5;
+            dominant-baseline: middle;
         }
 
-        .line {
-            flex: 1;
-            height: 4px;
-            border-radius: 2px;
-            position: relative;
-            overflow: visible;
+        .today-dot-glow {
+            animation: breathGlow 2.5s ease-in-out infinite;
         }
 
-        .line.past {
-            background: linear-gradient(90deg, var(--line-color) 0%, var(--line-color) 100%);
+        .today-dot-core {
+            animation: breathCore 2.5s ease-in-out infinite;
         }
 
-        .line.current {
-            background: linear-gradient(90deg, var(--line-color) 0%, var(--line-color) var(--progress), #333 var(--progress), #333 100%);
-        }
-
-        .line.future {
-            background: #333;
-        }
-
-        .today-dot {
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            background: white;
-            border-radius: 50%;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 10;
-            animation: jump 2s ease-in-out infinite, waves 2s ease-in-out infinite;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
-        }
-
-        @keyframes jump {
-            0%, 100% { transform: translateY(-50%) scale(1); }
-            50% { transform: translateY(-70%) scale(1.2); }
-        }
-
-        @keyframes waves {
-            0%, 100% { 
-                box-shadow: 
-                    0 0 20px rgba(255, 255, 255, 0.8),
-                    0 0 40px rgba(255, 255, 255, 0.4),
-                    0 0 60px rgba(255, 255, 255, 0.2);
+        @keyframes breathCore {
+            0%, 100% {
+                opacity: 0.4;
             }
-            50% { 
-                box-shadow: 
-                    0 0 30px rgba(255, 255, 255, 1),
-                    0 0 60px rgba(255, 255, 255, 0.6),
-                    0 0 90px rgba(255, 255, 255, 0.3);
+            50% {
+                opacity: 1;
             }
         }
 
-        /* Color scheme based on age ranges - matching the image */
-        .age-0-9 { --line-color: #FFD700; }    /* Gold/Yellow */
-        .age-10-19 { --line-color: #FF8C00; }  /* Orange */
-        .age-20-29 { --line-color: #FF4500; }  /* Red-Orange */
-        .age-30-39 { --line-color: #FF1493; }  /* Deep Pink */
-        .age-40-49 { --line-color: #8B008B; }  /* Dark Magenta */
-        .age-50-59 { --line-color: #4169E1; }  /* Royal Blue */
-        .age-60-69 { --line-color: #0066CC; }  /* Blue */
-        .age-70-79 { --line-color: #008B8B; }  /* Dark Cyan */
-        .age-80-89 { --line-color: #228B22; }  /* Forest Green */
-        .age-90-99 { --line-color: #32CD32; }  /* Lime Green */
-
-        /* Connection lines for U-turns */
-        .connection {
-            position: absolute;
-            right: -15px;
-            top: 50%;
-            width: 30px;
-            height: 36px;
-            border: 2px solid #444;
-            border-left: none;
-            border-top-right-radius: 18px;
-            border-bottom-right-radius: 18px;
-            transform: translateY(-50%);
-        }
-
-        .year-line.right-to-left .connection {
-            left: -15px;
-            right: auto;
-            border: 2px solid #444;
-            border-right: none;
-            border-top-left-radius: 18px;
-            border-bottom-left-radius: 18px;
-            border-top-right-radius: 0;
-            border-bottom-right-radius: 0;
+        @keyframes breathGlow {
+            0%, 100% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.5;
+            }
         }
     </style>
 </head>
@@ -164,94 +89,260 @@
         <p>TAKE A STEP BACK AND GAIN A NEW PERSPECTIVE ON YOUR LIFE</p>
     </div>
 
-    <div class="timeline-container" id="timeline">
-        <!-- Timeline will be generated by JavaScript -->
+    <div class="timeline-wrapper" id="wrapper">
+        <svg id="timeline"></svg>
     </div>
 
     <script>
         const birthday = new Date('1994-12-20');
         const today = new Date();
-        const timeline = document.getElementById('timeline');
 
-        // Calculate current age and position within the current year
         const ageInDays = (today - birthday) / (24 * 60 * 60 * 1000);
         const currentAge = Math.floor(ageInDays / 365.25);
-        
-        // Calculate progress within current year
+
         const yearStart = new Date(birthday);
         yearStart.setFullYear(birthday.getFullYear() + currentAge);
         const yearEnd = new Date(yearStart);
         yearEnd.setFullYear(yearStart.getFullYear() + 1);
         const yearProgress = Math.min((today - yearStart) / (yearEnd - yearStart), 1);
 
-        function getColorClass(age) {
-            if (age < 10) return 'age-0-9';
-            if (age < 20) return 'age-10-19';
-            if (age < 30) return 'age-20-29';
-            if (age < 40) return 'age-30-39';
-            if (age < 50) return 'age-40-49';
-            if (age < 60) return 'age-50-59';
-            if (age < 70) return 'age-60-69';
-            if (age < 80) return 'age-70-79';
-            if (age < 90) return 'age-80-89';
-            return 'age-90-99';
+        const rowHeight = 30;
+        const turnRadius = rowHeight / 2;
+        const lineWidth = 4;
+        const marginLeft = 40;
+        const marginRight = 40;
+        const labelAreaWidth = 160;
+        const snakeWidth = 800;
+        const svgWidth = snakeWidth + labelAreaWidth;
+        const lineLength = snakeWidth - marginLeft - marginRight;
+        const totalRows = 100;
+        const svgHeight = totalRows * rowHeight + 20;
+
+        const svg = document.getElementById('timeline');
+        svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+        svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+        function getColor(age) {
+            if (age <= 12) return '#FFD700';  // Childhood - Yellow
+            if (age <= 19) return '#FF8C00';  // Adolescence - Orange
+            if (age <= 34) return '#FF1493';  // Early Adulthood - Pink
+            if (age <= 49) return '#8B008B';  // Middle Adulthood - Purple
+            if (age <= 79) return '#00BFFF';  // Mature Adulthood - Blue
+            return '#32CD32';                 // Late Adulthood - Green
         }
 
-        // Generate 100 years with snake pattern
-        for (let age = 0; age < 100; age++) {
-            const yearDiv = document.createElement('div');
-            yearDiv.className = 'year-line';
-            
-            // Determine direction - even ages go left-to-right, odd ages go right-to-left
+        function getYForRow(row) {
+            return 10 + row * rowHeight + rowHeight / 2;
+        }
+
+        // Draw the snake as one continuous path using segments per year
+
+        for (let age = 0; age < totalRows; age++) {
+            const y = getYForRow(age);
             const isLeftToRight = age % 2 === 0;
-            yearDiv.classList.add(isLeftToRight ? 'left-to-right' : 'right-to-left');
 
-            const ageLabel = document.createElement('div');
-            ageLabel.className = 'age-label';
-            ageLabel.textContent = age;
+            const xStart = isLeftToRight ? marginLeft : (snakeWidth - marginRight);
+            const xEnd = isLeftToRight ? (snakeWidth - marginRight) : marginLeft;
 
-            const line = document.createElement('div');
-            line.className = 'line';
-            
-            const colorClass = getColorClass(age);
-            line.classList.add(colorClass);
-            
+            const color = getColor(age);
+            const futureColor = '#333';
+
             if (age < currentAge) {
-                // Past years - fully colored
-                line.classList.add('past');
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', xStart);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', xEnd);
+                line.setAttribute('y2', y);
+                line.setAttribute('stroke', color);
+                line.setAttribute('stroke-width', lineWidth);
+                line.setAttribute('stroke-linecap', 'butt');
+                svg.appendChild(line);
             } else if (age === currentAge) {
-                // Current year - partially colored with today dot
-                line.classList.add('current');
-                line.style.setProperty('--progress', `${yearProgress * 100}%`);
-                
-                const todayDot = document.createElement('div');
-                todayDot.className = 'today-dot';
-                
-                // Position dot based on direction and progress
-                if (isLeftToRight) {
-                    todayDot.style.left = `${yearProgress * 100}%`;
-                } else {
-                    todayDot.style.right = `${yearProgress * 100}%`;
-                }
-                
-                line.appendChild(todayDot);
+                // Partial line: colored portion + grey remainder
+                const progressX = isLeftToRight
+                    ? marginLeft + lineLength * yearProgress
+                    : (snakeWidth - marginRight) - lineLength * yearProgress;
+
+                // Colored part
+                const coloredLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                coloredLine.setAttribute('x1', xStart);
+                coloredLine.setAttribute('y1', y);
+                coloredLine.setAttribute('x2', progressX);
+                coloredLine.setAttribute('y2', y);
+                coloredLine.setAttribute('stroke', color);
+                coloredLine.setAttribute('stroke-width', lineWidth);
+                coloredLine.setAttribute('stroke-linecap', 'butt');
+                svg.appendChild(coloredLine);
+
+                // Grey part
+                const greyLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                greyLine.setAttribute('x1', progressX);
+                greyLine.setAttribute('y1', y);
+                greyLine.setAttribute('x2', xEnd);
+                greyLine.setAttribute('y2', y);
+                greyLine.setAttribute('stroke', futureColor);
+                greyLine.setAttribute('stroke-width', lineWidth);
+                greyLine.setAttribute('stroke-linecap', 'butt');
+                svg.appendChild(greyLine);
+
+                // Today dot with breathing glow
+                const totalWeeks = 52 * 100;
+                const weeksLived = Math.floor(ageInDays / 7);
+
+                const dotGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                dotGroup.style.cursor = 'pointer';
+
+                const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                glow.setAttribute('cx', progressX);
+                glow.setAttribute('cy', y);
+                glow.setAttribute('r', '14');
+                glow.setAttribute('fill', 'white');
+                glow.setAttribute('opacity', '0');
+                glow.classList.add('today-dot-glow');
+                dotGroup.appendChild(glow);
+
+                const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                dot.setAttribute('cx', progressX);
+                dot.setAttribute('cy', y);
+                dot.setAttribute('r', '6');
+                dot.setAttribute('fill', 'white');
+                dot.setAttribute('opacity', '0.4');
+                dot.classList.add('today-dot-core');
+                dotGroup.appendChild(dot);
+
+                // Invisible larger hit area for hover/touch
+                const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                hitArea.setAttribute('cx', progressX);
+                hitArea.setAttribute('cy', y);
+                hitArea.setAttribute('r', '20');
+                hitArea.setAttribute('fill', 'transparent');
+                dotGroup.appendChild(hitArea);
+
+                // Tooltip
+                const tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                tooltip.setAttribute('opacity', '0');
+                tooltip.style.transition = 'opacity 0.3s';
+
+                const tooltipBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                const tooltipText = `Week ${weeksLived.toLocaleString()} of ${totalWeeks.toLocaleString()}`;
+                tooltipBg.setAttribute('x', progressX - 120);
+                tooltipBg.setAttribute('y', y - 40);
+                tooltipBg.setAttribute('width', '240');
+                tooltipBg.setAttribute('height', '30');
+                tooltipBg.setAttribute('rx', '4');
+                tooltipBg.setAttribute('fill', 'rgba(255,255,255,0.15)');
+                tooltip.appendChild(tooltipBg);
+
+                const tooltipLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                tooltipLabel.setAttribute('x', progressX);
+                tooltipLabel.setAttribute('y', y - 21);
+                tooltipLabel.setAttribute('text-anchor', 'middle');
+                tooltipLabel.setAttribute('dominant-baseline', 'middle');
+                tooltipLabel.setAttribute('fill', 'white');
+                tooltipLabel.setAttribute('font-size', '16');
+                tooltipLabel.setAttribute('font-family', 'SF Hello, -apple-system, sans-serif');
+                tooltipLabel.textContent = tooltipText;
+                tooltip.appendChild(tooltipLabel);
+
+                dotGroup.appendChild(tooltip);
+                svg.appendChild(dotGroup);
+
+                dotGroup.addEventListener('mouseenter', () => tooltip.setAttribute('opacity', '1'));
+                dotGroup.addEventListener('mouseleave', () => tooltip.setAttribute('opacity', '0'));
+                dotGroup.addEventListener('touchstart', () => tooltip.setAttribute('opacity', '1'));
+                dotGroup.addEventListener('touchend', () => setTimeout(() => tooltip.setAttribute('opacity', '0'), 2000));
             } else {
-                // Future years - grey
-                line.classList.add('future');
+                // Future: grey line
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', xStart);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', xEnd);
+                line.setAttribute('y2', y);
+                line.setAttribute('stroke', futureColor);
+                line.setAttribute('stroke-width', lineWidth);
+                line.setAttribute('stroke-linecap', 'butt');
+                svg.appendChild(line);
             }
 
-            yearDiv.appendChild(ageLabel);
-            yearDiv.appendChild(line);
+            // Draw U-turn connecting this row to the next
+            if (age < totalRows - 1) {
+                const nextY = getYForRow(age + 1);
+                const turnColor = age < currentAge ? color : futureColor;
 
-            // Add connection curve for U-turns (except for last year)
-            if (age < 99) {
-                const connection = document.createElement('div');
-                connection.className = 'connection';
-                yearDiv.appendChild(connection);
+                const turn = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                let d;
+
+                if (isLeftToRight) {
+                    // U-turn on the right side
+                    const cx = snakeWidth - marginRight;
+                    d = `M ${cx} ${y} A ${turnRadius} ${turnRadius} 0 0 1 ${cx} ${nextY}`;
+                } else {
+                    // U-turn on the left side
+                    const cx = marginLeft;
+                    d = `M ${cx} ${y} A ${turnRadius} ${turnRadius} 0 0 0 ${cx} ${nextY}`;
+                }
+
+                turn.setAttribute('d', d);
+                turn.setAttribute('fill', 'none');
+                turn.setAttribute('stroke', turnColor);
+                turn.setAttribute('stroke-width', lineWidth);
+                turn.setAttribute('stroke-linecap', 'butt');
+                svg.appendChild(turn);
             }
 
-            timeline.appendChild(yearDiv);
+            // Age labels
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.setAttribute('y', y);
+            label.setAttribute('class', 'age-label');
+            label.textContent = age;
+
+            if (age % 2 === 0) {
+                label.setAttribute('x', marginLeft - 25);
+                label.setAttribute('text-anchor', 'end');
+            } else {
+                label.setAttribute('x', snakeWidth - marginRight + 25);
+                label.setAttribute('text-anchor', 'start');
+            }
+
+            svg.appendChild(label);
         }
+
+        // Life stage labels on the right side (vertical text)
+        const stages = [
+            { start: 0, end: 12, label: 'CHILDHOOD (0-12)' },
+            { start: 13, end: 19, label: 'ADOLESCENCE (13-19)' },
+            { start: 20, end: 34, label: 'EARLY ADULTHOOD (20-34)' },
+            { start: 35, end: 49, label: 'MIDDLE ADULTHOOD (35-49)' },
+            { start: 50, end: 79, label: 'MATURE ADULTHOOD (50-79)' },
+            { start: 80, end: 99, label: 'LATE ADULTHOOD (80-99)' },
+        ];
+
+        const stageLabelX = snakeWidth + labelAreaWidth / 2;
+
+        stages.forEach(stage => {
+            const yTop = getYForRow(stage.start);
+            const yBottom = getYForRow(stage.end);
+            const yMid = (yTop + yBottom) / 2;
+
+            // Use the color from the middle of the section
+            const midAge = Math.floor((stage.start + stage.end) / 2);
+            const stageColor = getColor(midAge);
+
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', stageLabelX);
+            text.setAttribute('y', yMid);
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('dominant-baseline', 'middle');
+            text.setAttribute('transform', `rotate(90, ${stageLabelX}, ${yMid})`);
+            text.setAttribute('fill', stageColor);
+            text.setAttribute('opacity', '0.8');
+            text.setAttribute('font-size', '14');
+            text.setAttribute('font-family', 'SF Hello, -apple-system, sans-serif');
+            text.setAttribute('font-weight', 'bold');
+            text.setAttribute('letter-spacing', '2');
+            text.textContent = stage.label;
+            svg.appendChild(text);
+        });
     </script>
 </body>
 </html>
